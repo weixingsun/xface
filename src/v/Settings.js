@@ -9,13 +9,14 @@ import styles from '../style'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import Slider from 'react-native-slider'
 import Button from 'apsl-react-native-button'
+import Global from '../Global'
 
 export default class About extends React.Component {
     constructor(props) {
         super(props);
         this.state={ 
             modalVisible:false,
-            nsfw:0.3,
+            nsfw:Global['LEVEL'],
         }
         this.copy=this.copy.bind(this)
     }
@@ -106,11 +107,13 @@ export default class About extends React.Component {
     }
     changeNSFW(value){
         if(value>0.9 || value<0.1){
-	    //alert('NSFW value need between 0 ~ 1')
-	    this.setState({nsfw:this.state.nsfw})
+            //alert('NSFW value need between 0 ~ 1')
+            //this.setState({nsfw:this.state.nsfw})
         }else{
-	    this.setState({nsfw:value})
-	}
+            this.setState({nsfw:value})
+            //alert('value='+value)
+            Global['LEVEL']=value
+        }
     }
     clearAS(){
         Alert.alert(
@@ -119,8 +122,8 @@ export default class About extends React.Component {
             [
               {text:I18n.t("no"), },
               {text:I18n.t('yes'), onPress:()=>{
-                  //Linking.openURL('mailto:sun.app.service@gmail.com')
                   AsyncStorage.clear(()=>{})
+             Actions.pop({refresh: {reset:true}})
               }},
             ]
         );

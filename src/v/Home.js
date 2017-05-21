@@ -40,7 +40,7 @@ export default class Home extends React.Component {
                 face:0,
             },
         }
-        this.renderMore=this.renderMore.bind(this)
+        this.renderLevel=this.renderLevel.bind(this)
         this.lastPhotoFetched = undefined; // null would crash on iOS.
         this.lastScanID = 'LAST_SCAN_PHOTO'
         this.lastFacesID = 'FACES_PHOTO'
@@ -49,12 +49,17 @@ export default class Home extends React.Component {
     }
     componentWillMount() {
         //this.clearAS()
-        //this.updateWithActionIcon()
+        this.updateWithActionIcon()
         this.setupNSFW()
         this.getLastScan()
         this.getLastFaces()
         this.getLastPorns()
         this.getLastAll()
+    }
+    componentWillReceiveProps(props){
+        if(props.reset) {
+            this.clearAS()
+        }
     }
     componentWillUnmount(){
         //this.stopAll()
@@ -62,6 +67,18 @@ export default class Home extends React.Component {
     }
     clearAS(){
         AsyncStorage.clear(()=>{})
+        this.setState({
+            all_images:{},  //{image1.jpg:{porn:0.35,face:0}, image2.jpg:{porn:0.01,face:2}}
+            porn_images:[], //[image1.jpg,image2.jpg]
+            face_images:[], //[image3.jpg]
+            saw_total:0,
+            copy_total:0,
+            data:{
+                all:0,
+                porn:0,
+                face:0,
+            }
+        })
     }
     setPieData(){
         let all  = Object.keys(this.state.all_images).length
@@ -141,9 +158,10 @@ export default class Home extends React.Component {
         this.storeImages(newPhotos,(item)=>{
             this.seeOneImage(item)
         })
+        console.log("onPhotosFetchedSuccess()")
     }
     fetchPhotos(first = PHOTOS_COUNT_BY_FETCH, after = this.lastPhotoFetched) {
-        console.log('fetchPhotos ('+PHOTOS_COUNT_BY_FETCH+','+after+')')
+        //console.log('fetchPhotos ('+PHOTOS_COUNT_BY_FETCH+','+after+')')
         let options = {
             first,
             after,
@@ -213,7 +231,7 @@ export default class Home extends React.Component {
         json['uri'] = image.uri
         all_images[image.name] = json
         var data = this.state.data
-        if(options.porn>0.1){
+        if(options.porn>Global['LEVEL']){
             porn_images.push(image.name)
             data['porn']=data.porn+1
         }
@@ -312,8 +330,14 @@ export default class Home extends React.Component {
     updateWithActionIcon(){
         Actions.refresh({
             key:'home',
-            renderRightButton: this.renderMore,
+            renderRightButton: this.renderLevel,
         });
+    }
+    renderLevel(){
+        let title=Global['LEVEL']  //'Level:'+
+        return (
+            <Text style={styles.right_icon}>{title}</Text>
+        )
     }
     scanDir(name){
         let path = this.state.dirs[name].path
@@ -393,8 +417,8 @@ export default class Home extends React.Component {
         //let onFacePress=()=>{alert(JSON.stringify(faces))}
         let onScanPress=()=>this.fetchPhotos()
         if(this.state.scanning) {
-            scan_title='Scanning'
-            onScanPress=()=>alert(scan_title)
+            scan_title='Stop Scanning'
+            onScanPress=()=>this.setState({scanning:false})
             //let pornCount = this.state.porn_images.length
             //let faceCount = this.state.face_images.length
             //let sawCount  = this.state.saw_total
