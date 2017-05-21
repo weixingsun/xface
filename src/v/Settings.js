@@ -120,11 +120,10 @@ export default class About extends React.Component {
             I18n.t("reset"),
             I18n.t("confirm_reset_history"),
             [
-              {text:I18n.t("no"), },
-              {text:I18n.t('yes'), onPress:()=>{
-                  AsyncStorage.clear(()=>{})
-             Actions.pop({refresh: {reset:true}})
-              }},
+                {text:I18n.t("no"), },
+                {text:I18n.t('yes'), onPress:()=>{
+                    Actions.pop({refresh: {reset:true}})
+                }},
             ]
         );
     }
